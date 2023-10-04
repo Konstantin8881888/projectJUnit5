@@ -4,11 +4,14 @@ import org.junit.jupiter.api.*;
 import xyz.belochka.junit.dto.User;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class UserServiceTest {
+    private static final User VASYA = User.of(1, "Vasya", "123");
+    private static final User FEDYA = User.of(1, "Fedya", "1234");
     private static UserService userService;
 
     @BeforeAll
@@ -30,12 +33,33 @@ class UserServiceTest {
     @Test
     void usersSizeIfUserAdded(){
         System.out.println("Test 2 " + this);
-        userService.add(new User());
-        userService.add(new User());
+        userService.add(VASYA);
+        userService.add(FEDYA);
         List<User> users = userService.getAll();
         assertEquals(2, users.size());
     }
 
+    @Test
+    void loginSuccesIfUserExist(){
+        userService.add(VASYA);
+        Optional<User> maybeUser = userService.login(VASYA.getUsername(), VASYA.getPassword());
+        assertTrue(maybeUser.isPresent());
+        maybeUser.ifPresent(user -> assertEquals(VASYA,user));
+    }
+
+    @Test
+    void loginFailIfPasswordNotCorrect(){
+        userService.add(VASYA);
+        Optional<User> maybeUser = userService.login(VASYA.getUsername(), "Incorrect");
+        assertTrue(maybeUser.isEmpty());
+    }
+
+    @Test
+    void loginFailIfUserDoesNotExist(){
+        userService.add(VASYA);
+        Optional<User> maybeUser = userService.login("Incorrect", VASYA.getPassword());
+        assertTrue(maybeUser.isEmpty());
+    }
     @AfterEach
     void deleteData(){
         System.out.println("After each " + this);
