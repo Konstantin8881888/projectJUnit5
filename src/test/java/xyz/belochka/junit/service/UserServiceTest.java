@@ -4,24 +4,26 @@ import org.junit.jupiter.api.*;
 import xyz.belochka.junit.dto.User;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class UserServiceTest {
     private static final User VASYA = User.of(1, "Vasya", "123");
-    private static final User FEDYA = User.of(1, "Fedya", "1234");
+    private static final User FEDYA = User.of(2, "Fedya", "1234");
     private static UserService userService;
 
     @BeforeAll
     void initAll(){
         System.out.println("Before all " + this);
-        userService = new UserService();
     }
     @BeforeEach
     void prepare(){
         System.out.println("Before each " + this);
+        userService = new UserService();
     }
     @Test
     void usersEmptyIfNotAdded(){
@@ -33,18 +35,30 @@ class UserServiceTest {
     @Test
     void usersSizeIfUserAdded(){
         System.out.println("Test 2 " + this);
-        userService.add(VASYA);
-        userService.add(FEDYA);
+        userService.add(VASYA, FEDYA);
         List<User> users = userService.getAll();
-        assertEquals(2, users.size());
+        assertThat(users).hasSize(2);
+//        assertEquals(2, users.size());
     }
 
     @Test
     void loginSuccesIfUserExist(){
         userService.add(VASYA);
         Optional<User> maybeUser = userService.login(VASYA.getUsername(), VASYA.getPassword());
-        assertTrue(maybeUser.isPresent());
-        maybeUser.ifPresent(user -> assertEquals(VASYA,user));
+        assertThat(maybeUser).isPresent();
+        maybeUser.ifPresent(user -> assertThat(user).isEqualTo(VASYA));
+//        assertTrue(maybeUser.isPresent());
+//        maybeUser.ifPresent(user -> assertEquals(VASYA,user));
+    }
+    @Test
+    void usersConvertedToMapById(){
+        userService.add(VASYA, FEDYA);
+        Map<Integer, User> users = userService.getAllConverted();
+        assertAll(
+                () -> assertThat(users).containsKeys(VASYA.getId(), FEDYA.getId()),
+                () -> assertThat(users).containsValues(VASYA, FEDYA)
+        );
+
     }
 
     @Test
