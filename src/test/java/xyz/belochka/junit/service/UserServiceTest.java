@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -17,23 +17,25 @@ class UserServiceTest {
     private static UserService userService;
 
     @BeforeAll
-    void initAll(){
+    void initAll() {
         System.out.println("Before all " + this);
     }
+
     @BeforeEach
-    void prepare(){
+    void prepare() {
         System.out.println("Before each " + this);
         userService = new UserService();
     }
+
     @Test
-    void usersEmptyIfNotAdded(){
+    void usersEmptyIfNotAdded() {
         System.out.println("Test 1 " + this);
         List<User> users = userService.getAll();
         assertTrue(users.isEmpty());
     }
 
     @Test
-    void usersSizeIfUserAdded(){
+    void usersSizeIfUserAdded() {
         System.out.println("Test 2 " + this);
         userService.add(VASYA, FEDYA);
         List<User> users = userService.getAll();
@@ -42,7 +44,7 @@ class UserServiceTest {
     }
 
     @Test
-    void loginSuccesIfUserExist(){
+    void loginSuccesIfUserExist() {
         userService.add(VASYA);
         Optional<User> maybeUser = userService.login(VASYA.getUsername(), VASYA.getPassword());
         assertThat(maybeUser).isPresent();
@@ -50,8 +52,9 @@ class UserServiceTest {
 //        assertTrue(maybeUser.isPresent());
 //        maybeUser.ifPresent(user -> assertEquals(VASYA,user));
     }
+
     @Test
-    void usersConvertedToMapById(){
+    void usersConvertedToMapById() {
         userService.add(VASYA, FEDYA);
         Map<Integer, User> users = userService.getAllConverted();
         assertAll(
@@ -62,24 +65,41 @@ class UserServiceTest {
     }
 
     @Test
-    void loginFailIfPasswordNotCorrect(){
+    void loginFailIfPasswordNotCorrect() {
         userService.add(VASYA);
         Optional<User> maybeUser = userService.login(VASYA.getUsername(), "Incorrect");
         assertTrue(maybeUser.isEmpty());
     }
 
     @Test
-    void loginFailIfUserDoesNotExist(){
+    void loginFailIfUserDoesNotExist() {
         userService.add(VASYA);
         Optional<User> maybeUser = userService.login("Incorrect", VASYA.getPassword());
         assertTrue(maybeUser.isEmpty());
     }
+
+    @Test
+    void throwExeptionIfLoginOrPasswordNull() {
+        assertAll(
+                () -> {
+                    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> userService.login(null, "Incorrect"));
+                    assertThat(exception.getMessage()).isEqualTo("Username or password is null");
+                },
+                () -> {
+                    IllegalArgumentException exception1 = assertThrows(IllegalArgumentException.class, () -> userService.login("Incorrect", null));
+                    assertThat(exception1.getMessage()).isEqualTo("Username or password is null");
+                }
+        );
+//        assertThrows(IllegalArgumentException.class, () -> userService.login(null, "Incorrect"));
+    }
+
     @AfterEach
-    void deleteData(){
+    void deleteData() {
         System.out.println("After each " + this);
     }
+
     @AfterAll
-    void deleteAll(){
-        System.out.println("After all " +this);
+    void deleteAll() {
+        System.out.println("After all " + this);
     }
 }
