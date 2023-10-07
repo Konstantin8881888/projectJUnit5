@@ -1,4 +1,4 @@
-package xyz.belochka.junit.paramresolver;
+package xyz.belochka.junit.extension;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;

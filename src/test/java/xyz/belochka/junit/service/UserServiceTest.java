@@ -5,8 +5,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.*;
 import xyz.belochka.junit.dto.User;
-import xyz.belochka.junit.paramresolver.UserServiceParamResolver;
+import xyz.belochka.junit.extension.ConditionalExtension;
+import xyz.belochka.junit.extension.GlobalExtension;
+import xyz.belochka.junit.extension.ThrowableExtension;
+import xyz.belochka.junit.extension.UserServiceParamResolver;
 
+import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -17,7 +22,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith({
-        UserServiceParamResolver.class
+        UserServiceParamResolver.class,
+        GlobalExtension.class,
+        ConditionalExtension.class,
+        ThrowableExtension.class
 })
 //@TestMethodOrder(MethodOrderer.MethodName.class)
 class UserServiceTest {
@@ -61,6 +69,7 @@ class UserServiceTest {
 
         @Test
         void usersConvertedToMapById() {
+            System.out.println("Test 3 " + this);
             userService.add(VASYA, FEDYA);
             Map<Integer, User> users = userService.getAllConverted();
             assertAll(
@@ -75,6 +84,7 @@ class UserServiceTest {
     class LoginTests {
         @Test
         void loginSuccesIfUserExist() {
+            System.out.println("Test 4 " + this);
             userService.add(VASYA);
             Optional<User> maybeUser = userService.login(VASYA.getUsername(), VASYA.getPassword());
             assertThat(maybeUser).isPresent();
@@ -85,6 +95,7 @@ class UserServiceTest {
 
         @Test
         void loginFailIfPasswordNotCorrect() {
+            System.out.println("Test 5 " + this);
             userService.add(VASYA);
             Optional<User> maybeUser = userService.login(VASYA.getUsername(), "Incorrect");
             assertTrue(maybeUser.isEmpty());
@@ -92,13 +103,18 @@ class UserServiceTest {
 
         @Test
         void loginFailIfUserDoesNotExist() {
+            System.out.println("Test 6 " + this);
             userService.add(VASYA);
             Optional<User> maybeUser = userService.login("Incorrect", VASYA.getPassword());
             assertTrue(maybeUser.isEmpty());
         }
 
         @Test
-        void throwExeptionIfLoginOrPasswordNull() {
+        void throwExeptionIfLoginOrPasswordNull() throws IOException {
+//            if (true){
+//                throw new IOException();
+//            }
+            System.out.println("Test 7 " + this);
             assertAll(
                     () -> {
                         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> userService.login(null, "Incorrect"));
@@ -120,9 +136,19 @@ class UserServiceTest {
 //                "Fedya,1234"
 //        })
         void loginPaqrametrizedTest(String username, String password, Optional<User> user) {
+            System.out.println("Test 8 " + this);
             userService.add(VASYA, FEDYA);
             Optional<User> maybeUser = userService.login(username, password);
             assertThat(maybeUser).isEqualTo(user);
+        }
+
+        @Test
+        void checkLoginFunctionalityPerfofmance() {
+            System.out.println("Test 9 " + this);
+            Optional<User> result = assertTimeout(Duration.ofMillis(100L), () -> {
+//                Thread.sleep(300);
+                return userService.login(VASYA.getUsername(), "Incorrect");
+            });
         }
     }
 
