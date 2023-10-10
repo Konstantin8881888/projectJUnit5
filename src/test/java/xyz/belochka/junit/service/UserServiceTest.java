@@ -10,6 +10,7 @@ import xyz.belochka.junit.dao.UserDao;
 import xyz.belochka.junit.dto.User;
 import xyz.belochka.junit.extension.ConditionalExtension;
 import xyz.belochka.junit.extension.GlobalExtension;
+import xyz.belochka.junit.extension.ThrowableExtension;
 import xyz.belochka.junit.extension.UserServiceParamResolver;
 
 import java.io.IOException;
@@ -28,8 +29,8 @@ import static org.mockito.Mockito.*;
         UserServiceParamResolver.class,
         GlobalExtension.class,
         ConditionalExtension.class,
-        MockitoExtension.class
-//        ThrowableExtension.class
+        MockitoExtension.class,
+        ThrowableExtension.class
 })
 //@TestMethodOrder(MethodOrderer.MethodName.class)
 class UserServiceTest {
