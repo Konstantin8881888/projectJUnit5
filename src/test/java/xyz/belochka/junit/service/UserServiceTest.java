@@ -4,7 +4,8 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.*;
-import org.mockito.Mockito;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 import xyz.belochka.junit.dao.UserDao;
 import xyz.belochka.junit.dto.User;
 import xyz.belochka.junit.extension.ConditionalExtension;
@@ -20,19 +21,25 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith({
         UserServiceParamResolver.class,
         GlobalExtension.class,
         ConditionalExtension.class,
+        MockitoExtension.class
 //        ThrowableExtension.class
 })
 //@TestMethodOrder(MethodOrderer.MethodName.class)
 class UserServiceTest {
     private static final User VASYA = User.of(1, "Vasya", "123");
     private static final User FEDYA = User.of(2, "Fedya", "1234");
+    @Captor
+    private ArgumentCaptor<Integer> argumentCaptor;
+    @Mock(lenient = true)
     private UserDao userDao;
+    @InjectMocks
     private UserService userService;
 
     UserServiceTest(TestInfo testInfo) {
@@ -47,19 +54,26 @@ class UserServiceTest {
     @BeforeEach
     void prepare() {
         System.out.println("Before each " + this);
+        doReturn(true).when(userDao).delete(VASYA.getId());
 //        this.userDao = Mockito.mock(UserDao.class);
-        this.userDao = Mockito.spy(new UserDao());
-        this.userService = new UserService(userDao);
+//        this.userDao = Mockito.spy(new UserDao());
+//        this.userService = new UserService(userDao);
     }
 
     @Test
+    void throwExceptionIfDatabaseNotAvailable(){
+        doThrow(RuntimeException.class).when(userDao).delete(VASYA.getId());
+        assertThrows(RuntimeException.class, ()-> userService.delete(VASYA.getId()));
+    }
+    @Test
     void shouldDeleteExistedUser(){
         userService.add(VASYA);
-        Mockito.doReturn(true).when(userDao).delete(VASYA.getId());
+//        Mockito.doReturn(true).when(userDao).delete(VASYA.getId());
 //        Mockito.doReturn(true).when(userDao).delete(Mockito.any());
 // Mockito.when(userDao.delete(VASYA.getId())).thenReturn(true);// Работает не для всех случаев
         boolean deleteResult = userService.delete(VASYA.getId());
-        Mockito.verify(userDao, Mockito.times(1)).delete(VASYA.getId());
+        verify(userDao, times(1)).delete(argumentCaptor.capture());
+        assertThat(argumentCaptor.getValue()).isEqualTo(VASYA.getId());
         assertThat(deleteResult).isTrue();
     }
 
