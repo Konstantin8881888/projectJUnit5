@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 import xyz.belochka.junit.service.UserService;
+import xyz.belochka.junit.dao.UserDao;
 
 public class UserServiceParamResolver implements ParameterResolver {
     @Override
@@ -14,6 +15,6 @@ public class UserServiceParamResolver implements ParameterResolver {
 
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
-        return new UserService();
+        return new UserService(new UserDao());
     }
 }
